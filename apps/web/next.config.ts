@@ -1,6 +1,9 @@
 import { withContentCollections } from "@content-collections/next"
 import type { NextConfig } from "next"
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://your-default-domain.vercel.app"
+const posthogUrl = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://app.posthog.com"
+
 const nextConfig: NextConfig = {
   reactStrictMode: false,
 
@@ -25,14 +28,13 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 31536000,
     deviceSizes: [640, 768, 1024],
     remotePatterns: [
-      { hostname: `${process.env.S3_BUCKET}.s3.${process.env.S3_REGION}.amazonaws.com` },
+      {
+        hostname: `${process.env.S3_BUCKET || "example-bucket"}.s3.${process.env.S3_REGION || "us-east-1"}.amazonaws.com`,
+      },
     ],
   },
 
   async rewrites() {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
-    const posthogUrl = process.env.NEXT_PUBLIC_POSTHOG_HOST
-
     return [
       // RSS rewrites
       {
@@ -44,10 +46,10 @@ const nextConfig: NextConfig = {
         destination: `${siteUrl}/rss/alternatives.xml`,
       },
 
-      // for posthog proxy
+      // PostHog proxy (optional — can be removed if not using PostHog)
       {
         source: "/_proxy/posthog/ingest/static/:path*",
-        destination: `${posthogUrl?.replace("us", "us-assets")}/static/:path*`,
+        destination: `${posthogUrl.replace("us", "us-assets")}/static/:path*`,
       },
       {
         source: "/_proxy/posthog/ingest/:path*",
